@@ -1,2 +1,2 @@
 # Awesome release logger
-A handy tool that help to write release/chagne log from git commit message
+A handy tool that help to write release/change log from git commit message
