@@ -140,7 +140,7 @@ func writeReleaseLog()  {
 		//write a empty line
 		writeLine(f, "")
 	}
-	
+
     fmt.Println("----------Release Log----------")
     fmt.Println("\tFile: release-log.md")
     fmt.Println("-------------------------------")
