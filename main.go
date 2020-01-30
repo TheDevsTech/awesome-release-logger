@@ -8,6 +8,7 @@ import (
     "os"
     "time"
     "flag"
+    "bufio"
 )
 
 const ShellToUse = "bash"
@@ -26,9 +27,8 @@ var (
 
 func main() {
 	parseCliOptions()
-	logCommand := gitBaseCommand + " log --format=%B%H----DELIMITER----"
-	out := shellout(logCommand)
-	parseCommits(out)
+	findGitRemote()
+	collectGitLogs()
 	writeReleaseLog()
 }
 
@@ -71,6 +71,63 @@ func directoryExists(path string) bool {
 	return true
 }
 
+func findGitRemote() {
+	remoteCommand := gitBaseCommand + " remote -v"
+	remote := shellout(remoteCommand)
+	if len(remote) > 0 {
+		remoteArray := strings.Split(remote, "\n");
+		remoteList := make(map[string]string)
+		for _, line := range(remoteArray) {
+			if len(line) > 0 {
+				remotePart := strings.Fields(line)
+				remoteList[remotePart[0]] = replaceMessage(remotePart[1], ".git", "")
+			}
+		}
+
+		if len(remoteList) > 1 {
+			gitRemoteUrl = getRemoteFromUserInput(remoteList)
+
+		} else {
+			for _, url := range remoteList {
+				gitRemoteUrl = url
+				break
+			}
+		}
+	}
+}
+
+func getRemoteFromUserInput(remoteList map[string]string) string {
+	remoteUrl := ""
+	for {
+		choosenName := getUserChoice(remoteList)
+		url, exists := remoteList[choosenName]
+		if exists {
+			remoteUrl = url
+			break
+		}
+	}
+	return remoteUrl
+}
+
+func getUserChoice(remoteList map[string]string) string {
+	fmt.Println("Multiple git remote found. Please choose one and write it:")
+	for name, _ := range remoteList {
+		fmt.Println(name)
+	}
+	fmt.Print("-> ")
+	reader := bufio.NewReader(os.Stdin)
+	name, _ := reader.ReadString('\n')
+	// convert CRLF to LF
+	name = strings.Replace(name, "\n", "", -1)
+	return name
+}
+
+func collectGitLogs() {
+	logCommand := gitBaseCommand + " log --format=%B%H----DELIMITER----"
+	logs := shellout(logCommand)
+	parseCommits(logs)
+}
+
 func shellout(command string) (string) {
     var stdout bytes.Buffer
     var stderr bytes.Buffer
@@ -92,16 +149,27 @@ func replaceMessage(message string, search string, replace string) string  {
 }
 
 func formatMessage(message string, sha string, shortSha string) string  {
-    messageSlice := []string{ message,
-        " ",
-        "([",
-        shortSha,
-        "](",
-        gitRemoteUrl,
-        "/commit/",
-        sha,
-        "))",
-    }
+	messageSlice := []string{}
+	if len(gitRemoteUrl) > 0 {
+		messageSlice = []string{message,
+			" ",
+			"([",
+			shortSha,
+			"](",
+			gitRemoteUrl,
+			"/commit/",
+			sha,
+			"))",
+		}
+	} else {
+		messageSlice = []string{message,
+			" ",
+			"(",
+			shortSha,
+			")",
+		}
+	}
+
    return strings.Join(messageSlice, "")
 }
 
