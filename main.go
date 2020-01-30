@@ -3,22 +3,75 @@ package main
 import (
     "bytes"
     "fmt"
-    "log"
     "os/exec"
     "strings"
     "os"
     "time"
+    "flag"
 )
 
 const ShellToUse = "bash"
+const releaseFileName = "release-log.md"
+var gitBaseCommand  = "git"
 //conventional commit types
-var features = make(map[string]string)
-var fix = make(map[string]string)
-var chore = make(map[string]string)
+var (
+	features = make(map[string]string)
+	fix = make(map[string]string)
+	chore = make(map[string]string)
+)
 var haveBreakChange = false
-var gitRemoteUrl = "https://github.com/hrshadhin/awesome-logger"
+var (
+	gitRemoteUrl, projectPath, outputPath string
+)
 
-func Shellout(command string) (string) {
+func main() {
+	parseCliOptions()
+	logCommand := gitBaseCommand + " log --format=%B%H----DELIMITER----"
+	out := shellout(logCommand)
+	parseCommits(out)
+	writeReleaseLog()
+}
+
+func parseCliOptions() {
+	// get cli option
+	flag.StringVar(&projectPath, "d", ".", "project directory path")
+	flag.StringVar(&outputPath, "o", ".", "output file path")
+	flag.Parse()
+
+	// .git directory discovery
+	if projectPath != "." {
+		if !strings.HasSuffix(projectPath, "/") {
+			projectPath = fmt.Sprintf("%s%s",projectPath, "/")
+		}
+
+		if !directoryExists(projectPath) {
+			fmt.Println("Project path not exists!")
+			os.Exit(1)
+		}
+		gitBaseCommand = fmt.Sprintf("%s %s%s%s", gitBaseCommand, "--git-dir=", projectPath, ".git")
+	}
+
+	// output file location
+	if outputPath != "." {
+		if !strings.HasSuffix(outputPath, "/") {
+			outputPath = fmt.Sprintf("%s/", outputPath)
+		}
+
+		if !directoryExists(outputPath) {
+			fmt.Println("Output path not exists!")
+			os.Exit(1)
+		}
+	}
+}
+
+func directoryExists(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+func shellout(command string) (string) {
     var stdout bytes.Buffer
     var stderr bytes.Buffer
     cmd := exec.Command(ShellToUse, "-c", command)
@@ -27,9 +80,7 @@ func Shellout(command string) (string) {
     err := cmd.Run()
 
     if err != nil {
-        log.Printf("error: %v\n", err)
-        fmt.Println("--- Error Trace ---")
-        fmt.Println(stderr.String())
+        fmt.Print(stderr.String())
         os.Exit(1)
     }
 
@@ -54,7 +105,7 @@ func formatMessage(message string, sha string, shortSha string) string  {
    return strings.Join(messageSlice, "")
 }
 
-func ParseCommits(commits string)  {
+func parseCommits(commits string)  {
     commitsArray := strings.Split(commits, "----DELIMITER----\n")
     for _, commit := range commitsArray {
         commitPart := strings.Split(commit, "\n")
@@ -94,20 +145,25 @@ func ParseCommits(commits string)  {
 func writeLine(f *os.File, line string)  {
     l := fmt.Sprintf("%s%s", line, "\n")
     if _, err := f.WriteString(l); err != nil {
-        log.Panic(err)
+        fmt.Println(err)
     }
 }
 
 func writeReleaseLog()  {
+	releaseFilePath = releaseFileName
+	if outputPath != "." {
+		releaseFilePath = fmt.Sprintf("%s%s", outputPath, releaseFileName)
+	}
     // open release log file
-    f, err := os.OpenFile("release-log.md", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+    f, err := os.OpenFile(releaseFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
     if err != nil {
-        log.Panic(err)
+        fmt.Println(err)
     }
     // close file on exit and check for its returned error
     defer func() {
         if err := f.Close(); err != nil {
-            log.Panic(err)
+            fmt.Println(err)
+            os.Exit(1)
         }
     }()
 
@@ -144,11 +200,4 @@ func writeReleaseLog()  {
     fmt.Println("----------Release Log----------")
     fmt.Println("\tFile: release-log.md")
     fmt.Println("-------------------------------")
-}
-
-func main() {
-    gitLogCommand := "git log --format=%B%H----DELIMITER----"
-    out := Shellout(gitLogCommand)
-    ParseCommits(out)
-    writeReleaseLog()
 }
