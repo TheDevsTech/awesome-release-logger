@@ -150,7 +150,7 @@ func writeLine(f *os.File, line string)  {
 }
 
 func writeReleaseLog()  {
-	releaseFilePath = releaseFileName
+	releaseFilePath := releaseFileName
 	if outputPath != "." {
 		releaseFilePath = fmt.Sprintf("%s%s", outputPath, releaseFileName)
 	}
