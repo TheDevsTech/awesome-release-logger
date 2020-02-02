@@ -9,11 +9,19 @@ import (
 	"time"
 	"flag"
 	"bufio"
+	"strconv"
 )
 
 const ShellToUse = "bash"
 const releaseFileName = "release-log.md"
 var gitBaseCommand  = "git"
+var latestTag = ""
+var newTag = ""
+var (
+	major = 1
+	minor = 0
+	patch = 0
+)
 //conventional commit types
 var (
 	features = make(map[string]string)
@@ -28,7 +36,9 @@ var (
 func main() {
 	parseCliOptions()
 	findGitRemote()
+	findLatestTag()
 	collectGitLogs()
+	makeNewTag()
 	writeReleaseLog()
 }
 
@@ -71,10 +81,25 @@ func directoryExists(path string) bool {
 	return true
 }
 
+func shellout(command string) (string, error) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd := exec.Command(ShellToUse, "-c", command)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+
+	if err != nil {
+		fmt.Print(stderr.String())
+	}
+
+	return stdout.String(), err
+}
+
 func findGitRemote() {
 	remoteCommand := gitBaseCommand + " remote -v"
-	remote := shellout(remoteCommand)
-	if len(remote) > 0 {
+	remote, err := shellout(remoteCommand)
+	if err == nil && len(remote) > 0 {
 		remoteArray := strings.Split(remote, "\n");
 		remoteList := make(map[string]string)
 		for _, line := range(remoteArray) {
@@ -122,26 +147,136 @@ func getUserChoice(remoteList map[string]string) string {
 	return name
 }
 
-func collectGitLogs() {
-	logCommand := gitBaseCommand + " log --format=%B%H----DELIMITER----"
-	logs := shellout(logCommand)
-	parseCommits(logs)
+func findLatestTag()  {
+	latestTagCommand := gitBaseCommand + " describe --long"
+	tag, err := shellout(latestTagCommand)
+	if err == nil {
+		tagPart := strings.Split(tag, "-")
+		latestTag = tagPart[0]
+	}
 }
 
-func shellout(command string) (string) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd := exec.Command(ShellToUse, "-c", command)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
+func collectGitLogs() {
+	logCommand := gitBaseCommand + " log --format=%B%H----DELIMITER----"
+	if len(latestTag) > 0 {
+		logCommand = gitBaseCommand + fmt.Sprintf(" log %s..HEAD --format=%B%H----DELIMITER----", latestTag)
+	}
+	logs, err := shellout(logCommand)
+	if err == nil {
+		parseCommits(logs)
+	}
 
+}
+
+func makeNewTag()  {
+	//suggest a tag
+	suggestTag := findSuggestTag()
+	//loop for get user input
+	for {
+		// get tag form user
+		nTag := getTagFromUserInput(suggestTag)
+		if len(nTag) == 0 && len(suggestTag) > 0 {
+			newTag = suggestTag
+			break
+		} else {
+			nTag, err := validateTag(nTag)
+			if len(err) == 0 {
+				newTag = nTag
+				break
+			}
+			fmt.Println(err)
+		}
+	}
+
+	// now make the tag
+	tagCommand := fmt.Sprintf("%s tag %s", gitBaseCommand, newTag)
+	_, err := shellout(tagCommand)
 	if err != nil {
-		fmt.Print(stderr.String())
+		fmt.Println("Can't create tag. %v", err)
 		os.Exit(1)
 	}
 
-	return stdout.String()
+}
+
+func findSuggestTag() string  {
+	if len(latestTag) > 0 {
+		latestTagPart := strings.Split(latestTag, ".")
+		isValidTag := true
+		if m, err := strconv.ParseInt(latestTagPart[0], 10); err == nil {
+			major = m
+		} else {
+			isValidTag = false
+		}
+
+		if mi, err := strconv.ParseInt(latestTagPart[1], 10); err == nil {
+			minor = mi
+		} else {
+			isValidTag = false
+		}
+
+		if p, err := strconv.ParseInt(latestTagPart[1], 10); err == nil {
+			patch = p
+		} else {
+			isValidTag = false
+		}
+
+		if !isValidTag {
+			return ""
+		}
+
+		if haveBreakChange {
+			major++
+			minor = 0
+			patch = 0
+		}
+		if len(features) > 0 {
+			minor++
+		}
+		if len(fix) > 0 {
+			patch++
+		}
+
+	}
+
+	return fmt.Sprintf("%s.%s.%s", major, minor, patch)
+}
+
+func getTagFromUserInput(sTag string) string  {
+	if len(sTag) > 0 {
+		fmt.Println(fmt.Sprintf("Previous tag is %s", sTag))
+	}
+	message := "Enter new tag name"
+	if len(suggestTag) > 0 {
+		message = fmt.Sprintf("%s(%s)", message, suggestTag)
+	}
+	fmt.Println(message+":")
+	reader := bufio.NewReader(os.Stdin)
+	nTag, _ := reader.ReadString('\n')
+	// convert CRLF to LF
+	nTag = strings.Replace(nTag, "\n", "", -1)
+
+	return nTag
+}
+
+func validateTag(tag string) (string, error)  {
+	tagPart := strings.Split(tag, '.')
+	if len(tagPart) != 3 {
+		return "", "Tag should have 3 part major, minor, patch. i.e: 1.1.1"
+	}
+
+	if _, err := strconv.ParseInt(tagPart[0], 10); err != nil {
+		return "", "Tag major version is not integer!"
+	}
+
+	if _, err := strconv.ParseInt(tagPart[1], 10); err == nil {
+		return "", "Tag minor version is not integer!"
+	}
+
+	if _, err := strconv.ParseInt(tagPart[1], 10); err == nil {
+		return "", "Tag patch version is not integer!"
+	}
+
+	return tag, ""
 }
 
 func replaceMessage(message string, search string, replace string) string  {
@@ -222,10 +357,29 @@ func writeReleaseLog()  {
 	if outputPath != "." {
 		releaseFilePath = fmt.Sprintf("%s%s", outputPath, releaseFileName)
 	}
-	// open release log file
-	f, err := os.OpenFile(releaseFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	//get previous contents because we need to prepend the latest log
+	oldContents := []string{}
+	f, err := os.OpenFile(releaseFilePath, os.O_RDONLY, 0600)
 	if err != nil {
 		fmt.Println(err)
+	} else {
+		// read file and store content in memory
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			if tmp := scanner.Text(); len(tmp) != 0 {
+				oldContents = append(oldContents, tmp)
+			}
+		}
+	}
+	defer f.Close()
+
+
+	// open release log file
+	nf, err := os.OpenFile(releaseFilePath, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 	// close file on exit and check for its returned error
 	defer func() {
@@ -236,7 +390,7 @@ func writeReleaseLog()  {
 	}()
 
 	today := time.Now()
-	writeLine(f, fmt.Sprintf("# Version 0.1 (%s)", today.Format("2006-01-02")))
+	writeLine(nf, fmt.Sprintf("# Version %s (%s)", newTag, today.Format("2006-01-02")))
 
 	if len(features) > 0 {
 		writeLine(f, "## Feature")
@@ -264,6 +418,15 @@ func writeReleaseLog()  {
 		//write a empty line
 		writeLine(f, "")
 	}
+    if len(oldContents) {
+		//write empty lines
+		writeLine(f, "")
+		writeLine(f, "")
+		for _, line := range oldContents {
+			writeLine(f, line)
+		}
+	}
+
 
 	fmt.Println("----------Release Log----------")
 	fmt.Println("\tFile: release-log.md")
