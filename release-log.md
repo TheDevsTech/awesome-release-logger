@@ -1,9 +1,12 @@
+# Version 1.2.0 (2020-02-02)
+## Fix
+* another 2 bugs are fixed ([46e9bf6](https://github.com/TheDevsTech/awesome-release-logger/commit/46e9bf6cc9074f73a04d2850305b48edeacc0728))
+
+
+
 # Version 1.0.1 (2020-02-02)
 ## Fix
 * fixing too many bugs ([70ef935](https://github.com/TheDevsTech/awesome-release-logger/commit/70ef9359051d71bd21179e1f48fe1317d2b81cdb))
-
-
-
 # Version 1.0.0 (2020-02-02)
 ## Feature
 * 2nd commit ([8717168](https://github.com/TheDevsTech/awesome-release-logger/commit/8717168c21ec5a9cbae2b151ee082ab38b73a60f))

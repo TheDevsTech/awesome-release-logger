@@ -227,7 +227,7 @@ func findSuggestTag() string  {
 			isValidTag = false
 		}
 
-		if p, err := strconv.ParseInt(latestTagPart[1], 10, 64); err == nil {
+		if p, err := strconv.ParseInt(latestTagPart[2], 10, 64); err == nil {
 			patch = p
 		} else {
 			isValidTag = false
@@ -240,21 +240,19 @@ func findSuggestTag() string  {
 			minor = 0
 			patch = 0
 		}
-		if len(features) > 0 {
+		if len(features) > 0 || len(chore) > 0 {
 			minor = minor + 1
 		}
 		if len(fix) > 0 {
 			patch = patch + 1
 		}
-
 	}
-
 	return fmt.Sprintf("%d.%d.%d", major, minor, patch)
 }
 
 func getTagFromUserInput(sTag string) string  {
 	if len(latestTag) > 0 {
-		fmt.Println(fmt.Sprintf("Previous tag is %s", sTag))
+		fmt.Println(fmt.Sprintf("Previous tag is %s", latestTag))
 	}
 	message := "Enter new tag name"
 	if len(sTag) > 0 {
