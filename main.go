@@ -12,25 +12,20 @@ import (
 )
 
 const ShellToUse = "bash"
-const releaseFileName = "release-log.md"
-var gitBaseCommand  = "git"
-var latestTag = ""
-var newTag = ""
+
 var (
-	major = int64(1)
-	minor = int64(0)
-	patch = int64(0)
-)
-//conventional commit types
-var (
+	gitBaseCommand  = "git"
+	latestTag = ""
+	newTag = ""
+	releaseFileName = "release-log"
+	gitRemoteUrl, projectPath, outputPath string
+	haveBreakChange = false
+	haveLog = false
+	writeNewFile = new(bool)
+	//conventional commit types
 	features = make(map[string]string)
 	fix = make(map[string]string)
 	chore = make(map[string]string)
-)
-var haveBreakChange = false
-var haveLog = false
-var (
-	gitRemoteUrl, projectPath, outputPath string
 )
 
 func main() {
@@ -50,6 +45,7 @@ func parseCliOptions() {
 	// get cli option
 	flag.StringVar(&projectPath, "d", ".", "project directory path")
 	flag.StringVar(&outputPath, "o", ".", "output file path")
+	writeNewFile = flag.Bool("nf", false, "write new release log file")
 	flag.Parse()
 
 	// .git directory discovery
@@ -215,7 +211,11 @@ func makeNewTag()  {
 func getTagFromUserInput() string  {
 	if len(latestTag) > 0 {
 		fmt.Println(fmt.Sprintf("Previous tag is %s", latestTag))
+		if haveBreakChange {
+			fmt.Println("You have breaking changes! So its might be good to update your major version number.")
+		}
 	}
+
 	fmt.Print("Enter new tag name:")
 	reader := bufio.NewReader(os.Stdin)
 	nTag, _ := reader.ReadString('\n')
@@ -299,14 +299,19 @@ func writeLine(f *os.File, line string)  {
 }
 
 func writeReleaseLog()  {
+	today := time.Now()
+	todayFormated := today.Format("2006-01-02")
+	if *writeNewFile {
+		releaseFileName = fmt.Sprintf("%s-%s.md", releaseFileName, todayFormated)
+	}
 	releaseFilePath := releaseFileName
 	if outputPath != "." {
-		releaseFilePath = fmt.Sprintf("%s%s", outputPath, releaseFileName)
+		releaseFilePath = fmt.Sprintf("%s%s.md", outputPath, releaseFileName)
 	}
 
 	//get previous contents because we need to prepend the latest log
 	oldContents := []string{}
-	if directoryOrFileExists(releaseFilePath) {
+	if directoryOrFileExists(releaseFilePath) && ! *writeNewFile {
 		f, err := os.OpenFile(releaseFilePath, os.O_RDONLY, 0600)
 		if err != nil {
 			fmt.Println(err)
@@ -337,8 +342,7 @@ func writeReleaseLog()  {
 		}
 	}()
 
-	today := time.Now()
-	writeLine(nf, fmt.Sprintf("# Version %s (%s)", newTag, today.Format("2006-01-02")))
+	writeLine(nf, fmt.Sprintf("# Version %s (%s)", newTag, todayFormated))
 
 	if len(features) > 0 {
 		writeLine(nf, "## Feature")
@@ -377,6 +381,6 @@ func writeReleaseLog()  {
 
 
 	fmt.Println("----------Release Log----------")
-	fmt.Println("\tFile: release-log.md")
+	fmt.Println("File: "+ releaseFileName + ".md")
 	fmt.Println("-------------------------------")
 }
