@@ -9,7 +9,6 @@ import (
 	"time"
 	"flag"
 	"bufio"
-	"strconv"
 )
 
 const ShellToUse = "bash"
@@ -119,6 +118,14 @@ func findGitRemote() {
 				break
 			}
 		}
+
+		//replace ssh clone url to https
+		if len(gitRemoteUrl) > 0 {
+			if strings.HasPrefix(gitRemoteUrl, "git@") {
+				gitRemoteUrl = replaceMessage(gitRemoteUrl, ":", "/")
+				gitRemoteUrl = replaceMessage(gitRemoteUrl, "git@", "https://")
+			}
+		}
 	}
 }
 
@@ -149,11 +156,14 @@ func getUserChoice(remoteList map[string]string) string {
 }
 
 func findLatestTag()  {
-	latestTagCommand := gitBaseCommand + " describe --long"
-	tag, err, _ := shellout(latestTagCommand)
-	if err == nil {
-		tagPart := strings.Split(tag, "-")
-		latestTag = tagPart[0]
+	latestTagCommand := gitBaseCommand + " rev-list --tags --max-count=1"
+	tagHas, err, _ := shellout(latestTagCommand)
+	if err == nil && len(tagHas) > 0 {
+		latestTagCommand = fmt.Sprintf("%s describe --tags %s" ,gitBaseCommand, tagHas)
+		latestTagName, err, _ := shellout(latestTagCommand)
+		if err == nil && len(latestTagName) > 0 {
+			latestTag = strings.Replace(latestTagName, "\n", "", -1)
+		}
 	}
 }
 
@@ -182,22 +192,13 @@ func collectGitLogs() {
 }
 
 func makeNewTag()  {
-	//suggest a tag
-	suggestTag := findSuggestTag()
 	//loop for get user input
 	for {
 		// get tag form user
-		nTag := getTagFromUserInput(suggestTag)
-		if len(nTag) == 0 && len(suggestTag) > 0 {
-			newTag = suggestTag
+		nTag := getTagFromUserInput()
+		if len(nTag) > 0 {
+			newTag = nTag
 			break
-		} else {
-			nTag, err := validateTag(nTag)
-			if len(err) == 0 {
-				newTag = nTag
-				break
-			}
-			fmt.Println(err)
 		}
 	}
 
@@ -211,81 +212,17 @@ func makeNewTag()  {
 
 }
 
-func findSuggestTag() string  {
-	if len(latestTag) > 0 {
-		latestTagPart := strings.Split(latestTag, ".")
-		isValidTag := true
-		if m, err := strconv.ParseInt(latestTagPart[0], 10, 64); err == nil {
-			major = m
-		} else {
-			isValidTag = false
-		}
-
-		if mi, err := strconv.ParseInt(latestTagPart[1], 10, 64); err == nil {
-			minor = mi
-		} else {
-			isValidTag = false
-		}
-
-		if p, err := strconv.ParseInt(latestTagPart[2], 10, 64); err == nil {
-			patch = p
-		} else {
-			isValidTag = false
-		}
-		if !isValidTag {
-			return ""
-		}
-		if haveBreakChange {
-			major = major + 1
-			minor = 0
-			patch = 0
-		}
-		if len(features) > 0 || len(chore) > 0 {
-			minor = minor + 1
-		}
-		if len(fix) > 0 {
-			patch = patch + 1
-		}
-	}
-	return fmt.Sprintf("%d.%d.%d", major, minor, patch)
-}
-
-func getTagFromUserInput(sTag string) string  {
+func getTagFromUserInput() string  {
 	if len(latestTag) > 0 {
 		fmt.Println(fmt.Sprintf("Previous tag is %s", latestTag))
 	}
-	message := "Enter new tag name"
-	if len(sTag) > 0 {
-		message = fmt.Sprintf("%s(%s)", message, sTag)
-	}
-	fmt.Print(message+":")
+	fmt.Print("Enter new tag name:")
 	reader := bufio.NewReader(os.Stdin)
 	nTag, _ := reader.ReadString('\n')
 	// convert CRLF to LF
 	nTag = strings.Replace(nTag, "\n", "", -1)
 
 	return nTag
-}
-
-func validateTag(tag string) (string, string)  {
-	tagPart := strings.Split(tag, ".")
-	if len(tagPart) != 3 {
-		return "", "Tag should have 3 part major, minor, patch. i.e: 1.1.1"
-	}
-
-	if _, err := strconv.ParseInt(tagPart[0], 10, 64); err != nil {
-		return "", "Tag major version is not integer!"
-	}
-
-	if _, err := strconv.ParseInt(tagPart[1], 10, 64); err != nil {
-		return "", "Tag minor version is not integer!"
-	}
-
-	if _, err := strconv.ParseInt(tagPart[2], 10, 64); err != nil {
-		return "", "Tag patch version is not integer!"
-	}
-
-	return tag, ""
 }
 
 func replaceMessage(message string, search string, replace string) string  {
