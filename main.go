@@ -22,6 +22,7 @@ var (
 	haveBreakChange = false
 	haveLog = false
 	writeNewFile = new(bool)
+	logFromBeginning = new(bool)
 	//conventional commit types
 	features = make(map[string]string)
 	fix = make(map[string]string)
@@ -45,7 +46,8 @@ func parseCliOptions() {
 	// get cli option
 	flag.StringVar(&projectPath, "d", ".", "project directory path")
 	flag.StringVar(&outputPath, "o", ".", "output file path")
-	writeNewFile = flag.Bool("nf", false, "write new release log file")
+	writeNewFile = flag.Bool("n", false, "write new release log file")
+	logFromBeginning = flag.Bool("b", false, "get logs from the beginning")
 	flag.Parse()
 
 	// .git directory discovery
@@ -165,7 +167,7 @@ func findLatestTag()  {
 
 func collectGitLogs() {
 	logCommand := gitBaseCommand + " log --format=%B%H----DELIMITER----"
-	if len(latestTag) > 0 {
+	if len(latestTag) > 0 && *logFromBeginning == false {
 		cmdSlice := []string{
 			gitBaseCommand,
 			" log ",
@@ -200,9 +202,9 @@ func makeNewTag()  {
 
 	// now make the tag
 	tagCommand := fmt.Sprintf("%s tag -a -m 'Version %s' %s", gitBaseCommand, newTag, newTag)
-	_, err, _ := shellout(tagCommand)
+	_, err, errMsg := shellout(tagCommand)
 	if err != nil {
-		fmt.Println("Can't create tag. %v", err)
+		fmt.Print(errMsg)
 		os.Exit(1)
 	}
 
