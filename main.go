@@ -29,6 +29,7 @@ var (
 	chore = make(map[string]string)
 )
 var haveBreakChange = false
+var haveLog = false
 var (
 	gitRemoteUrl, projectPath, outputPath string
 )
@@ -38,8 +39,12 @@ func main() {
 	findGitRemote()
 	findLatestTag()
 	collectGitLogs()
-	makeNewTag()
-	writeReleaseLog()
+	if haveLog {
+		makeNewTag()
+		writeReleaseLog()
+	} else {
+		fmt.Println("There are no changes made between "+latestTag +" and HEAD")
+	}
 }
 
 func parseCliOptions() {
@@ -155,10 +160,22 @@ func findLatestTag()  {
 func collectGitLogs() {
 	logCommand := gitBaseCommand + " log --format=%B%H----DELIMITER----"
 	if len(latestTag) > 0 {
-		logCommand = gitBaseCommand + fmt.Sprintf(" log %s..HEAD --format=%B%H----DELIMITER----", latestTag)
+		cmdSlice := []string{
+			gitBaseCommand,
+			" log ",
+			latestTag,
+			"..",
+			"HEAD --format=%B%H----DELIMITER----",
+		}
+		logCommand = strings.Join(cmdSlice, "")
 	}
-	logs, err, _ := shellout(logCommand)
-	if err == nil {
+	logs, err, errMsg := shellout(logCommand)
+	if err != nil {
+		fmt.Println(errMsg)
+	}
+
+	if len(logs) > 0 {
+		haveLog = true
 		parseCommits(logs)
 	}
 
@@ -215,21 +232,19 @@ func findSuggestTag() string  {
 		} else {
 			isValidTag = false
 		}
-
 		if !isValidTag {
 			return ""
 		}
-
 		if haveBreakChange {
-			major++
+			major = major + 1
 			minor = 0
 			patch = 0
 		}
 		if len(features) > 0 {
-			minor++
+			minor = minor + 1
 		}
 		if len(fix) > 0 {
-			patch++
+			patch = patch + 1
 		}
 
 	}

@@ -1,3 +1,9 @@
+# Version 1.0.1 (2020-02-02)
+## Fix
+* fixing too many bugs ([70ef935](https://github.com/TheDevsTech/awesome-release-logger/commit/70ef9359051d71bd21179e1f48fe1317d2b81cdb))
+
+
+
 # Version 1.0.0 (2020-02-02)
 ## Feature
 * 2nd commit ([8717168](https://github.com/TheDevsTech/awesome-release-logger/commit/8717168c21ec5a9cbae2b151ee082ab38b73a60f))
@@ -7,13 +13,10 @@
 * add logic for auto discover git remote ([2b6c780](https://github.com/TheDevsTech/awesome-release-logger/commit/2b6c780088bda57a17216c5c46b1e6c6281e3112))
 * add command line options and refactor code ([021af8b](https://github.com/TheDevsTech/awesome-release-logger/commit/021af8b01837511054a4d4d682e5a0dbecba0bfc))
 * basic feature done ([614979e](https://github.com/TheDevsTech/awesome-release-logger/commit/614979e8911fc29e50aecd4c0317e8d51a6612aa))
-
 ## Fix
 * fixed indentation ([7283eb4](https://github.com/TheDevsTech/awesome-release-logger/commit/7283eb448139c48ae958d7be100ba5f49f2f5d81))
 * fixed variable asignment error ([91d8b27](https://github.com/TheDevsTech/awesome-release-logger/commit/91d8b2760adfa34d2de8b344a1465295b0123b6c))
-
 ## Chore
 * remove duplicate license file ([88e95ec](https://github.com/TheDevsTech/awesome-release-logger/commit/88e95ec20c4b5aaa4c815744a0fac1e1fc447c45))
 * add readme and license file ([ab4c968](https://github.com/TheDevsTech/awesome-release-logger/commit/ab4c9688da16d2b44895c117d01004e9b37652ce))
 * add gitignore ([533a429](https://github.com/TheDevsTech/awesome-release-logger/commit/533a429a8df168df0382475fba35d978d472f499))
-
