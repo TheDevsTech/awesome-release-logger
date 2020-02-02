@@ -17,7 +17,7 @@ var (
 	gitBaseCommand  = "git"
 	latestTag = ""
 	newTag = ""
-	releaseFileName = "release-log"
+	releaseFileName = "release-log.md"
 	gitRemoteUrl, projectPath, outputPath string
 	haveBreakChange = false
 	haveLog = false
@@ -302,11 +302,11 @@ func writeReleaseLog()  {
 	today := time.Now()
 	todayFormated := today.Format("2006-01-02")
 	if *writeNewFile {
-		releaseFileName = fmt.Sprintf("%s-%s.md", releaseFileName, todayFormated)
+		releaseFileName = fmt.Sprintf("release-log-%s.md", todayFormated)
 	}
 	releaseFilePath := releaseFileName
 	if outputPath != "." {
-		releaseFilePath = fmt.Sprintf("%s%s.md", outputPath, releaseFileName)
+		releaseFilePath = fmt.Sprintf("%s%s", outputPath, releaseFileName)
 	}
 
 	//get previous contents because we need to prepend the latest log
@@ -381,6 +381,6 @@ func writeReleaseLog()  {
 
 
 	fmt.Println("----------Release Log----------")
-	fmt.Println("File: "+ releaseFileName + ".md")
+	fmt.Println("File: "+ releaseFileName)
 	fmt.Println("-------------------------------")
 }
