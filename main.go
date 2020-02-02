@@ -12,7 +12,6 @@ import (
 )
 
 const ShellToUse = "bash"
-
 var (
 	gitBaseCommand  = "git"
 	latestTag = ""
@@ -24,9 +23,9 @@ var (
 	writeNewFile = new(bool)
 	logFromBeginning = new(bool)
 	//conventional commit types
-	features = make(map[string]string)
-	fix = make(map[string]string)
-	chore = make(map[string]string)
+	features []string
+	fixes []string
+	chores []string
 )
 
 func main() {
@@ -272,13 +271,13 @@ func parseCommits(commits string)  {
 
 			if strings.HasPrefix(message, "chore:") {
 				message = replaceMessage(message, "chore: ","")
-				chore[sha] = formatMessage(message, sha, shortSha)
+				chores = append(chores, formatMessage(message, sha, shortSha))
 			} else if strings.HasPrefix(message, "fix:") {
 				message = replaceMessage(message, "fix: ","")
-				fix[sha] = formatMessage(message, sha, shortSha)
+				fixes = append(fixes, formatMessage(message, sha, shortSha))
 			} else if strings.HasPrefix(message, "breaking change:") {
 				message = replaceMessage(message, "breaking change: ","")
-				features[sha] = formatMessage(message, sha, shortSha)
+				features = append(features, formatMessage(message, sha, shortSha))
 				haveBreakChange = true
 			} else {
 				if strings.HasPrefix(message, "feature:") {
@@ -287,7 +286,8 @@ func parseCommits(commits string)  {
 				if strings.HasPrefix(message, "feat:") {
 					message = replaceMessage(message, "feat: ","")
 				}
-				features[sha] = formatMessage(message, sha, shortSha)
+				features = append(features, formatMessage(message, sha, shortSha))
+
 			}
 		}
 	}
@@ -355,18 +355,18 @@ func writeReleaseLog()  {
 		writeLine(nf, "")
 	}
 
-	if len(fix) > 0 {
+	if len(fixes) > 0 {
 		writeLine(nf, "## Fix")
-		for _, message := range fix {
+		for _, message := range fixes {
 			writeLine(nf, "* " + message)
 		}
 		//write a empty line
 		writeLine(nf, "")
 	}
 
-	if len(chore) > 0 {
+	if len(chores) > 0 {
 		writeLine(nf, "## Chore")
-		for _, message := range chore {
+		for _, message := range chores {
 			writeLine(nf, "* " + message)
 		}
 		//write a empty line
