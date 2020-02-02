@@ -329,7 +329,7 @@ func writeReleaseLog()  {
 
 
 	// open release log file
-	nf, err := os.OpenFile(releaseFilePath, os.O_CREATE|os.O_WRONLY, 0600)
+	nf, err := os.OpenFile(releaseFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
