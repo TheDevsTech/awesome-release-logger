@@ -52,7 +52,7 @@ current directory.
     `arl -o <output_directory_path`
     - By default this logger prepend logs if file exists. If you need separate file just pass `-n` flag 
     i.e: `arl -n`
-    - By default this logger get commit logs between latest tag & HEAD(if tags aren't exists then its get from the beginning)
+    - By default this logger get commit logs between latest tag & HEAD(if tag doesn't exists then its get from the beginning)
     - If tags are exists and you want to generate a fresh log from the beginning then  ad `-b` flag
     i.e `arl -b`
 
