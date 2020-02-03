@@ -55,6 +55,18 @@ current directory.
     - By default this logger get commit logs between latest tag & HEAD(if tag doesn't exists then its get from the beginning)
     - If tags are exists and you want to generate a fresh log from the beginning then  ad `-b` flag
     i.e `arl -b`
+- :exclamation:**Conventional Commits**:exclamation:
+    - For proper release log you must follow conventonal commit types in your commit message
+    - The commit message should be structured as follows:
+        ```
+        <type>[optional scope]: <description>
+        ```
+    - **Commit types**
+        - **fix:**  a commit of the type fix patches a bug in your codebase (this correlates with PATCH in semantic versioning).
+        - **feat:**  a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in semantic versioning).
+        - **breaking change:**  a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in semantic versioning).A breaking change can be part of commits of any type. e.g., a fix:, feat: & chore: types would all be valid, in addition to any other type.
+        - **chore:**  Update something without impacting the user (ex: bump a dependency in package.json). 
+        - For more details [here](https://www.conventionalcommits.org/en/v1.0.0/)
 
 # License
 [GPL-3.0](https://github.com/TheDevsTech/awesome-release-logger/blob/master/LICENSE)
