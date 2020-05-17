@@ -31,11 +31,10 @@ var (
 
 func main() {
 	parseCliOptions()
+	findGitRemote()
 	collectGitLogs()
 	findLatestTag()
-	if haveLog {
-		findGitRemote()
-		
+	if haveLog {		
 		//Get new tag from user
 		for {
 			// get tag form user
@@ -183,6 +182,7 @@ func findLatestTag()  {
 }
 
 func collectGitLogs() {
+	fmt.Println("Collecting logs...")
 	logCommand := gitBaseCommand + " log --format=%B%H----DELIMITER----"
 	if len(latestTag) > 0 && *logFromBeginning == false {
 		cmdSlice := []string{
@@ -397,26 +397,28 @@ func writeReleaseLog()  {
 	}
 
 
-	fmt.Println("----------Release Log----------")
+	fmt.Println("-------------Release Log-------------")
 	fmt.Println("File: "+ releaseFilePath)
-	fmt.Println("-------------------------------")
+	fmt.Println("-------------------------------------")
 }
 
 func commitLog() {
 	addAndCommitCmd := fmt.Sprintf("%s add . && %s commit -m 'added release log for tag: %s'", gitBaseCommand, gitBaseCommand, newTag)
-	_, err, errMsg := shellout(addAndCommitCmd)
-	if err != nil {
-		fmt.Printf("can't commit log!\n error: %s", errMsg)
-		os.Exit(1)
-	}
+	fmt.Println(addAndCommitCmd)
+	// _, err, errMsg := shellout(addAndCommitCmd)
+	// if err != nil {
+	// 	fmt.Printf("can't commit log!\n error: %s", errMsg)
+	// 	os.Exit(1)
+	// }
 }
 
 func pushLatestCommitAndTagToRemote() {
 	pushBaseCmd := fmt.Sprintf("%s push %s", gitBaseCommand, gitRemoteName)
 	pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s'",pushBaseCmd, pushBaseCmd, newTag)
-	_, err, errMsg := shellout(pushCommitTagCmd)
-	if err != nil {
-		fmt.Printf("Push to remove failed!\n error: %s", errMsg)
-		os.Exit(1)
-	}
+	fmt.Println(pushCommitTagCmd)
+	// _, err, errMsg := shellout(pushCommitTagCmd)
+	// if err != nil {
+	// 	fmt.Printf("Push to remove failed!\n error: %s", errMsg)
+	// 	os.Exit(1)
+	// }
 }
