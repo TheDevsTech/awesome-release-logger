@@ -49,7 +49,7 @@ func main() {
 		commitLog()
 		makeNewTag()
 		
-		//if has remove then pushit
+		//if has remote then pushit
 		if len(gitRemoteUrl) > 0 {
 			pushLatestCommitAndTagToRemote()
 		}
@@ -385,6 +385,14 @@ func writeReleaseLog()  {
 		//write a empty line
 		writeLine(nf, "")
 	}
+
+	//now write diff between two tags
+	writeLine(nf, "## Diff")
+	diffText := fmt.Sprintf("* %s/compare/%s...%s", gitRemoteUrl, latestTag, newTag)
+	writeLine(nf, diffText)
+
+
+	//now write old logs
     if len(oldContents) > 0 {
 		//write empty lines
 		writeLine(nf, "")
