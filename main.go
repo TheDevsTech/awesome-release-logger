@@ -317,7 +317,6 @@ func writeReleaseLog()  {
 		outputPath = fmt.Sprintf("./%s", logFileFolder)
 		releaseFilePath = fmt.Sprintf("%s/%s", outputPath, releaseFileName)
 		if !directoryOrFileExists(outputPath){
-			fmt.Println("creating log dir")
 			os.Mkdir(outputPath, os.ModePerm)
 		}
 	}
@@ -391,7 +390,7 @@ func writeReleaseLog()  {
 		}
 	}
 
-	endMessage := "Release Log File: "+ releaseFilePath
+	endMessage := "Log File: "+ releaseFilePath
 	messageLen := len(endMessage)
 	fmt.Println(strings.Repeat("-", messageLen))
 	fmt.Println(endMessage)
@@ -409,21 +408,19 @@ func readUserInput(question string, inputStore *string) {
 
 func commitLog() {
 	addAndCommitCmd := fmt.Sprintf("%s add . && %s commit -m 'added release log for tag: %s'", gitBaseCommand, gitBaseCommand, newTag)
-	fmt.Println(addAndCommitCmd)
-	// _, err, errMsg := shellout(addAndCommitCmd)
-	// if err != nil {
-	// 	fmt.Printf("can't commit log!\n error: %s", errMsg)
-	// 	os.Exit(1)
-	// }
+	_, err, errMsg := shellout(addAndCommitCmd)
+	if err != nil {
+		fmt.Printf("can't commit log!\n error: %s", errMsg)
+		os.Exit(1)
+	}
 }
 
 func pushLatestCommitAndTagToRemote() {
 	pushBaseCmd := fmt.Sprintf("%s push %s", gitBaseCommand, gitRemoteName)
 	pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s'",pushBaseCmd, pushBaseCmd, newTag)
-	fmt.Println(pushCommitTagCmd)
-	// _, err, errMsg := shellout(pushCommitTagCmd)
-	// if err != nil {
-	// 	fmt.Printf("Push to remove failed!\n error: %s", errMsg)
-	// 	os.Exit(1)
-	// }
+	_, err, errMsg := shellout(pushCommitTagCmd)
+	if err != nil {
+		fmt.Printf("Push to remove failed!\n error: %s", errMsg)
+		os.Exit(1)
+	}
 }
