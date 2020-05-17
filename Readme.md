@@ -4,7 +4,7 @@ A handy tool that help to write release/change log from git commit message
 ## Development
 
 - **Requirement**
-    - Go >= 1.13
+    - Go >= 1.12
  
 - Clone the repo
     ```
