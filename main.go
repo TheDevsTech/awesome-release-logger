@@ -16,6 +16,7 @@ var (
 	gitBaseCommand  = "git"
 	latestTag = ""
 	newTag = ""
+	tagMessage = ""
 	logFileFolder = "release-logs"
 	releaseFileName = "release-log.md"
 	gitRemoteUrl, gitRemoteName, projectPath, outputPath string
@@ -38,9 +39,8 @@ func main() {
 		//Get new tag from user
 		for {
 			// get tag form user
-			nTag := getTagFromUserInput()
-			if len(nTag) > 0 {
-				newTag = nTag
+			newTag, tagMessage = getTagFromUserInput()
+			if len(newTag) > 0 && len(tagMessage) > 0 {
 				break
 			}
 		}
@@ -161,11 +161,9 @@ func getUserChoice(remoteList map[string]string) string {
 	for name, _ := range remoteList {
 		fmt.Println(name)
 	}
-	fmt.Print("-> ")
-	reader := bufio.NewReader(os.Stdin)
-	name, _ := reader.ReadString('\n')
-	// convert CRLF to LF
-	name = strings.Replace(name, "\n", "", -1)
+
+	name := ""
+	readUserInput("-> ", &name)
 	return name
 }
 
@@ -208,7 +206,7 @@ func collectGitLogs() {
 
 func makeNewTag()  {
 	// now make the tag
-	tagCommand := fmt.Sprintf("%s tag -a -m 'Version %s' %s", gitBaseCommand, newTag, newTag)
+	tagCommand := fmt.Sprintf("%s tag -a -m '%s' %s", gitBaseCommand, tagMessage, newTag)
 	_, err, errMsg := shellout(tagCommand)
 	if err != nil {
 		fmt.Print(errMsg)
@@ -217,21 +215,19 @@ func makeNewTag()  {
 
 }
 
-func getTagFromUserInput() string  {
+func getTagFromUserInput() (string, string)  {
 	if len(latestTag) > 0 {
-		fmt.Println(fmt.Sprintf("Previous tag is %s", latestTag))
+		fmt.Printf("Previous tag is %s\n", latestTag)
 		if haveBreakChange {
 			fmt.Println("You have breaking changes! So its might be good to update your major version number.")
 		}
 	}
 
-	fmt.Print("Enter new tag name:")
-	reader := bufio.NewReader(os.Stdin)
-	nTag, _ := reader.ReadString('\n')
-	// convert CRLF to LF
-	nTag = strings.Replace(nTag, "\n", "", -1)
-
-	return nTag
+	nTag := ""
+	readUserInput("Enter new tag name:", &nTag)
+	message := ""
+	readUserInput("Enter tag message:", &message)
+	return nTag, message
 }
 
 func replaceMessage(message string, search string, replace string) string  {
@@ -401,6 +397,16 @@ func writeReleaseLog()  {
 	fmt.Println("File: "+ releaseFilePath)
 	fmt.Println("-------------------------------------")
 }
+
+func readUserInput(question string, inputStore *string) {
+	fmt.Printf(question)
+	reader := bufio.NewReader(os.Stdin)
+	inputText, _ := reader.ReadString('\n')
+	// convert CRLF to LF
+	inputText = strings.Replace(inputText, "\n", "", -1)
+	*inputStore = inputText
+}
+
 
 func commitLog() {
 	addAndCommitCmd := fmt.Sprintf("%s add . && %s commit -m 'added release log for tag: %s'", gitBaseCommand, gitBaseCommand, newTag)
