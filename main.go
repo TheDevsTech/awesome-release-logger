@@ -48,7 +48,11 @@ func main() {
 		writeReleaseLog()
 		commitLog()
 		makeNewTag()
-		pushLatestCommitAndTagToRemote()
+		
+		//if has remove then pushit
+		if len(gitRemoteUrl) > 0 {
+			pushLatestCommitAndTagToRemote()
+		}
 
 	} else {
 		fmt.Println("There are no changes made between "+latestTag +" and HEAD")
@@ -224,9 +228,9 @@ func getTagFromUserInput() (string, string)  {
 	}
 
 	nTag := ""
-	readUserInput("Enter new tag name:", &nTag)
+	readUserInput("Enter new tag name: ", &nTag)
 	message := ""
-	readUserInput("Enter tag message:", &message)
+	readUserInput("Enter tag message: ", &message)
 	return nTag, message
 }
 
@@ -423,4 +427,6 @@ func pushLatestCommitAndTagToRemote() {
 		fmt.Printf("Push to remove failed!\n error: %s", errMsg)
 		os.Exit(1)
 	}
+
+	fmt.Printf("Release log and tag: %s has been pushed to remote.", newTag)
 }
