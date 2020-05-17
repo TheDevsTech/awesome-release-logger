@@ -16,8 +16,9 @@ var (
 	gitBaseCommand  = "git"
 	latestTag = ""
 	newTag = ""
+	logFileFolder = "release-logs"
 	releaseFileName = "release-log.md"
-	gitRemoteUrl, projectPath, outputPath string
+	gitRemoteUrl, gitRemoteName, projectPath, outputPath string
 	haveBreakChange = false
 	haveLog = false
 	writeNewFile = new(bool)
@@ -30,12 +31,26 @@ var (
 
 func main() {
 	parseCliOptions()
-	findGitRemote()
-	findLatestTag()
 	collectGitLogs()
+	findLatestTag()
 	if haveLog {
-		makeNewTag()
+		findGitRemote()
+		
+		//Get new tag from user
+		for {
+			// get tag form user
+			nTag := getTagFromUserInput()
+			if len(nTag) > 0 {
+				newTag = nTag
+				break
+			}
+		}
+
 		writeReleaseLog()
+		commitLog()
+		makeNewTag()
+		pushLatestCommitAndTagToRemote()
+
 	} else {
 		fmt.Println("There are no changes made between "+latestTag +" and HEAD")
 	}
@@ -107,11 +122,12 @@ func findGitRemote() {
 		}
 
 		if len(remoteList) > 1 {
-			gitRemoteUrl = getRemoteFromUserInput(remoteList)
+			gitRemoteUrl, gitRemoteName = getRemoteFromUserInput(remoteList)
 
 		} else {
-			for _, url := range remoteList {
+			for name, url := range remoteList {
 				gitRemoteUrl = url
+				gitRemoteName = name
 				break
 			}
 		}
@@ -126,17 +142,19 @@ func findGitRemote() {
 	}
 }
 
-func getRemoteFromUserInput(remoteList map[string]string) string {
+func getRemoteFromUserInput(remoteList map[string]string) (string, string) {
 	remoteUrl := ""
+	remoteName := ""
 	for {
 		choosenName := getUserChoice(remoteList)
 		url, exists := remoteList[choosenName]
 		if exists {
 			remoteUrl = url
+			remoteName = choosenName
 			break
 		}
 	}
-	return remoteUrl
+	return remoteUrl, remoteName
 }
 
 func getUserChoice(remoteList map[string]string) string {
@@ -189,16 +207,6 @@ func collectGitLogs() {
 }
 
 func makeNewTag()  {
-	//loop for get user input
-	for {
-		// get tag form user
-		nTag := getTagFromUserInput()
-		if len(nTag) > 0 {
-			newTag = nTag
-			break
-		}
-	}
-
 	// now make the tag
 	tagCommand := fmt.Sprintf("%s tag -a -m 'Version %s' %s", gitBaseCommand, newTag, newTag)
 	_, err, errMsg := shellout(tagCommand)
@@ -309,6 +317,13 @@ func writeReleaseLog()  {
 	releaseFilePath := releaseFileName
 	if outputPath != "." {
 		releaseFilePath = fmt.Sprintf("%s%s", outputPath, releaseFileName)
+	} else {
+		outputPath = fmt.Sprintf("./%s", logFileFolder)
+		releaseFilePath = fmt.Sprintf("%s/%s", outputPath, releaseFileName)
+		if !directoryOrFileExists(outputPath){
+			fmt.Println("creating log dir")
+			os.Mkdir(outputPath, os.ModePerm)
+		}
 	}
 
 	//get previous contents because we need to prepend the latest log
@@ -383,6 +398,25 @@ func writeReleaseLog()  {
 
 
 	fmt.Println("----------Release Log----------")
-	fmt.Println("File: "+ releaseFileName)
+	fmt.Println("File: "+ releaseFilePath)
 	fmt.Println("-------------------------------")
+}
+
+func commitLog() {
+	addAndCommitCmd := fmt.Sprintf("%s add . && %s commit -m 'added release log for tag: %s'", gitBaseCommand, gitBaseCommand, newTag)
+	_, err, errMsg := shellout(addAndCommitCmd)
+	if err != nil {
+		fmt.Printf("can't commit log!\n error: %s", errMsg)
+		os.Exit(1)
+	}
+}
+
+func pushLatestCommitAndTagToRemote() {
+	pushBaseCmd := fmt.Sprintf("%s push %s", gitBaseCommand, gitRemoteName)
+	pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s'",pushBaseCmd, pushBaseCmd, newTag)
+	_, err, errMsg := shellout(pushCommitTagCmd)
+	if err != nil {
+		fmt.Printf("Push to remove failed!\n error: %s", errMsg)
+		os.Exit(1)
+	}
 }
