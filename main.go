@@ -12,6 +12,7 @@ import (
 )
 
 const ShellToUse = "bash"
+const AppVersion = "v1.2.1"
 var (
 	gitBaseCommand  = "git"
 	latestTag = ""
@@ -24,6 +25,7 @@ var (
 	haveLog = false
 	writeNewFile = new(bool)
 	logFromBeginning = new(bool)
+	showVersionNumber = new(bool)
 	//conventional commit types
 	features []string
 	fixes []string
@@ -32,6 +34,10 @@ var (
 
 func main() {
 	parseCliOptions()
+	if *showVersionNumber {
+		printVersionInfo()
+	}
+
 	findGitRemote()
 	findLatestTag()
 	collectGitLogs()
@@ -65,6 +71,7 @@ func parseCliOptions() {
 	flag.StringVar(&outputPath, "o", ".", "output file path")
 	writeNewFile = flag.Bool("n", false, "write new release log file")
 	logFromBeginning = flag.Bool("b", false, "get logs from the beginning")
+	showVersionNumber = flag.Bool("v", false, "show the version number")
 	flag.Parse()
 
 	// .git directory discovery
@@ -91,6 +98,13 @@ func parseCliOptions() {
 			os.Exit(1)
 		}
 	}
+}
+
+func printVersionInfo() {
+	fmt.Println("-: Awesome Release Logger(ARL) :-")
+	fmt.Printf("Version: %s\n", AppVersion)
+	fmt.Println("Copyright(c) 2020 TheDevsTech - GPL-3.0")
+	os.Exit(0)
 }
 
 func directoryOrFileExists(path string) bool {
@@ -436,5 +450,5 @@ func pushLatestCommitAndTagToRemote() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Release log and tag: %s has been pushed to remote.", newTag)
+	fmt.Printf("Release log and tag: %s has been pushed to remote.\n", newTag)
 }

@@ -1,12 +1,3 @@
-# Version v1.2.1 (2020-05-18)
-## Feature
-* added diff/compare url between two tags ([9769889](https://github.com/TheDevsTech/awesome-release-logger/commit/97698891553aa37a2d9ffca25bc644299656a04d))
-* update readme ([0dda679](https://github.com/TheDevsTech/awesome-release-logger/commit/0dda679e732c6d5c17f64b7db595e11429c560d7))
-
-## Diff
-* https://github.com/TheDevsTech/awesome-release-logger/compare/1.2.0-beta...v1.2.1
-
-
 # Version 1.2.0-beta (2020-05-18)
 ## Feature
 * push tag and release log if remote exists for that repo ([4ee1dc6](https://github.com/TheDevsTech/awesome-release-logger/commit/4ee1dc631bcb1606d567cd6723c41ada77587d4f))

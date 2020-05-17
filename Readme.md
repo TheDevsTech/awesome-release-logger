@@ -44,6 +44,7 @@ current directory.
       -n	write new release log file
       -o string
             output file path (default ".")
+      -v	show the version number
     ```
 - Generate release log
     - go to your project directory and type `arl` there
