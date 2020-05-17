@@ -417,7 +417,7 @@ func commitLog() {
 
 func pushLatestCommitAndTagToRemote() {
 	pushBaseCmd := fmt.Sprintf("%s push %s", gitBaseCommand, gitRemoteName)
-	pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s'",pushBaseCmd, pushBaseCmd, newTag)
+	pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s",pushBaseCmd, pushBaseCmd, newTag)
 	_, err, errMsg := shellout(pushCommitTagCmd)
 	if err != nil {
 		fmt.Printf("Push to remove failed!\n error: %s", errMsg)
