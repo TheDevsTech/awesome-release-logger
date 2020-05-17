@@ -5,13 +5,12 @@
 * bump to version 1.0.1-alpha ([bfd98b7](https://github.com/TheDevsTech/awesome-release-logger/commit/bfd98b734ecbd48c7d733c00f13b3513e4f2a270))
 
 
+
 # Version 1.0.1-alpha (2020-02-03)
 ## Fix
 * commit order bug fixed ([15d866f](https://github.com/TheDevsTech/awesome-release-logger/commit/15d866f76217c6c4509d5338f0ced30a60188b2d))
 ## Chore
 * add fresh release log file ([fd88480](https://github.com/TheDevsTech/awesome-release-logger/commit/fd884800eafed8b12c5f7d5b534222a67361398d))
-
-
 # Version 1.0.0-alpha (2020-02-03)
 ## Feature
 * add feature for write log from beginning ([097d132](https://github.com/TheDevsTech/awesome-release-logger/commit/097d1325008d21f321e9e8ce4e1fde5200906d02))

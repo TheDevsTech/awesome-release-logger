@@ -33,8 +33,8 @@ var (
 func main() {
 	parseCliOptions()
 	findGitRemote()
-	collectGitLogs()
 	findLatestTag()
+	collectGitLogs()
 	if haveLog {		
 		//Get new tag from user
 		for {
@@ -332,9 +332,8 @@ func writeReleaseLog()  {
 			// read file and store content in memory
 			scanner := bufio.NewScanner(f)
 			for scanner.Scan() {
-				if tmp := scanner.Text(); len(tmp) != 0 {
-					oldContents = append(oldContents, tmp)
-				}
+				tmp := scanner.Text()
+				oldContents = append(oldContents, tmp)
 			}
 		}
 		defer f.Close()
@@ -392,10 +391,11 @@ func writeReleaseLog()  {
 		}
 	}
 
-
-	fmt.Println("-------------Release Log-------------")
-	fmt.Println("File: "+ releaseFilePath)
-	fmt.Println("-------------------------------------")
+	endMessage := "Release Log File: "+ releaseFilePath
+	messageLen := len(endMessage)
+	fmt.Println(strings.Repeat("-", messageLen))
+	fmt.Println(endMessage)
+	fmt.Println(strings.Repeat("-", messageLen))
 }
 
 func readUserInput(question string, inputStore *string) {
@@ -406,7 +406,6 @@ func readUserInput(question string, inputStore *string) {
 	inputText = strings.Replace(inputText, "\n", "", -1)
 	*inputStore = inputText
 }
-
 
 func commitLog() {
 	addAndCommitCmd := fmt.Sprintf("%s add . && %s commit -m 'added release log for tag: %s'", gitBaseCommand, gitBaseCommand, newTag)
