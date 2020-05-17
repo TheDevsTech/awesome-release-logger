@@ -1,16 +1,3 @@
-# Version 1.2.0-beta (2020-05-18)
-## Feature
-* refactor code ([0cd1090](https://github.com/TheDevsTech/awesome-release-logger/commit/0cd10901790cc6ce60d3df439e156de57320f6eb))
-* add support for tag message and refactor codes ([9330c5d](https://github.com/TheDevsTech/awesome-release-logger/commit/9330c5d02bf9ef399599a42f2d449d47031caf9d))
-* add new log file location ([4d44af8](https://github.com/TheDevsTech/awesome-release-logger/commit/4d44af83acc654c9aedc8558390ba680ff7b7e90))
-* add default realese log folder and push log and tag to remote ([57dadc7](https://github.com/TheDevsTech/awesome-release-logger/commit/57dadc7021954746294d65015ffaa4672d30ca5f))
-
-## Chore
-* update readme ([45cbc6a](https://github.com/TheDevsTech/awesome-release-logger/commit/45cbc6aa97f7b9fa71276d5cc4e3413718fddab6))
-* bump to version 1.1.0-alpah ([973ab80](https://github.com/TheDevsTech/awesome-release-logger/commit/973ab8061d9071c7e06df44cdda65b9f9c1ab8a4))
-
-
-
 # Version 1.1.0-alpha (2020-02-03)
 ## Chore
 * update readme ([26eac37](https://github.com/TheDevsTech/awesome-release-logger/commit/26eac377935b9c81dcda1a9f26ee379f7576a266))
