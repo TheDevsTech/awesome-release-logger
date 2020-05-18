@@ -1,3 +1,19 @@
+# Version v1.2.2 (2020-05-18)
+## Feature
+* change messages ([f707aec](https://github.com/TheDevsTech/awesome-release-logger/commit/f707aeca4780798f96bacba36e1a026d3883a143))
+* added release log for tag: v1.2.2 ([140f4ab](https://github.com/TheDevsTech/awesome-release-logger/commit/140f4ab1a5192851d465d3fd6458deaec40061d7))
+* change message ([3581b74](https://github.com/TheDevsTech/awesome-release-logger/commit/3581b747eb1ffd04eae1e400dcc2f60ca056b171))
+* added release log for tag: v1.2.2 ([59bd9ca](https://github.com/TheDevsTech/awesome-release-logger/commit/59bd9ca70d0e5c0a5dc51fd455ec799be75d8307))
+* change messages ([982808f](https://github.com/TheDevsTech/awesome-release-logger/commit/982808fc4012ce9108c2968aaafb2d20f6b67fe1))
+* added release log for tag: v1.2.2 ([6d3793a](https://github.com/TheDevsTech/awesome-release-logger/commit/6d3793a8258da431832261972738947899a7a140))
+
+## Fix
+* outside repo release log commit bug ([9c3cf8b](https://github.com/TheDevsTech/awesome-release-logger/commit/9c3cf8bd8b26f9308725f2178ed68122c7833f80))
+
+## Diff
+* https://github.com/TheDevsTech/awesome-release-logger/compare/v1.2.1...v1.2.2
+
+
 # Version v1.2.1 (2020-05-18)
 ## Feature
 * add app version info option ([3ea40e3](https://github.com/TheDevsTech/awesome-release-logger/commit/3ea40e36ac2eb061fad9b3c5ccbdc4625dbb3eaa))
