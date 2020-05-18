@@ -12,7 +12,7 @@ import (
 )
 
 const ShellToUse = "bash"
-const AppVersion = "v1.2.1"
+const AppVersion = "v1.2.2"
 var (
 	gitBaseCommand  = "git"
 	latestTag = ""
@@ -20,6 +20,7 @@ var (
 	tagMessage = ""
 	logFileFolder = "release-logs"
 	releaseFileName = "release-log.md"
+	isCommitLog = false
 	gitRemoteUrl, gitRemoteName, projectPath, outputPath string
 	haveBreakChange = false
 	haveLog = false
@@ -54,11 +55,7 @@ func main() {
 		writeReleaseLog()
 		commitLog()
 		makeNewTag()
-		
-		//if has remote then pushit
-		if len(gitRemoteUrl) > 0 {
-			pushLatestCommitAndTagToRemote()
-		}
+		pushLatestCommitAndTagToRemote()
 
 	} else {
 		fmt.Println("There are no changes made between "+latestTag +" and HEAD")
@@ -333,10 +330,13 @@ func writeReleaseLog()  {
 		releaseFilePath = fmt.Sprintf("%s%s", outputPath, releaseFileName)
 	} else {
 		outputPath = fmt.Sprintf("./%s", logFileFolder)
-		releaseFilePath = fmt.Sprintf("%s/%s", outputPath, releaseFileName)
 		if !directoryOrFileExists(outputPath){
 			os.Mkdir(outputPath, os.ModePerm)
 		}
+		releaseFilePath = fmt.Sprintf("%s/%s", outputPath, releaseFileName)
+		
+		//If writing log inside of the repo, then need to commit the log
+		isCommitLog = true
 	}
 
 	//get previous contents because we need to prepend the latest log
@@ -433,22 +433,30 @@ func readUserInput(question string, inputStore *string) {
 }
 
 func commitLog() {
-	addAndCommitCmd := fmt.Sprintf("%s add . && %s commit -m 'added release log for tag: %s'", gitBaseCommand, gitBaseCommand, newTag)
-	_, err, errMsg := shellout(addAndCommitCmd)
-	if err != nil {
-		fmt.Printf("can't commit log!\n error: %s", errMsg)
-		os.Exit(1)
+	//If writing log inside of the repo, then need to commit the log
+	if isCommitLog {
+		fmt.Println("Committing new logs")
+		addAndCommitCmd := fmt.Sprintf("%s add . && %s commit -m 'added release log for tag: %s'", gitBaseCommand, gitBaseCommand, newTag)
+		_, err, errMsg := shellout(addAndCommitCmd)
+		if err != nil {
+			fmt.Printf("can't commit log!\n error: %s", errMsg)
+			os.Exit(1)
+		}
 	}
 }
 
 func pushLatestCommitAndTagToRemote() {
-	pushBaseCmd := fmt.Sprintf("%s push %s", gitBaseCommand, gitRemoteName)
-	pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s",pushBaseCmd, pushBaseCmd, newTag)
-	_, err, errMsg := shellout(pushCommitTagCmd)
-	if err != nil {
-		fmt.Printf("Push to remove failed!\n error: %s", errMsg)
-		os.Exit(1)
-	}
+	//if has remote then push it
+	if len(gitRemoteUrl) > 0 {
+		fmt.Println("Pushing log and tag to remote...")
+		pushBaseCmd := fmt.Sprintf("%s push %s", gitBaseCommand, gitRemoteName)
+		pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s",pushBaseCmd, pushBaseCmd, newTag)
+		_, err, errMsg := shellout(pushCommitTagCmd)
+		if err != nil {
+			fmt.Printf("Push to remove failed!\n error: %s", errMsg)
+			os.Exit(1)
+		}
 
-	fmt.Printf("Release log and tag: %s has been pushed to remote.\n", newTag)
+		fmt.Printf("Release log and tag: %s has been pushed to remote\n", newTag)
+	}
 }
