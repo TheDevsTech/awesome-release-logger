@@ -435,7 +435,7 @@ func readUserInput(question string, inputStore *string) {
 func commitLog() {
 	//If writing log inside of the repo, then need to commit the log
 	if isCommitLog {
-		fmt.Println("Committing new logs")
+		fmt.Println("Committing new logs...")
 		addAndCommitCmd := fmt.Sprintf("%s add . && %s commit -m 'added release log for tag: %s'", gitBaseCommand, gitBaseCommand, newTag)
 		_, err, errMsg := shellout(addAndCommitCmd)
 		if err != nil {
