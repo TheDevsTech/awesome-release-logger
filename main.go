@@ -55,7 +55,7 @@ func main() {
 		writeReleaseLog()
 		commitLog()
 		makeNewTag()
-		pushLatestCommitAndTagToRemote()
+		pushHeadAndTagToRemote()
 
 	} else {
 		fmt.Println("There are no changes made between "+latestTag +" and HEAD")
@@ -439,16 +439,16 @@ func commitLog() {
 		addAndCommitCmd := fmt.Sprintf("%s add . && %s commit -m 'added release log for tag: %s'", gitBaseCommand, gitBaseCommand, newTag)
 		_, err, errMsg := shellout(addAndCommitCmd)
 		if err != nil {
-			fmt.Printf("can't commit log!\n error: %s", errMsg)
+			fmt.Printf("Can't commit logs!\n error: %s", errMsg)
 			os.Exit(1)
 		}
 	}
 }
 
-func pushLatestCommitAndTagToRemote() {
+func pushHeadAndTagToRemote() {
 	//if has remote then push it
 	if len(gitRemoteUrl) > 0 {
-		fmt.Println("Pushing HEAD and tag to remote...")
+		fmt.Println("Pushing HEAD & tag to remote...")
 		pushBaseCmd := fmt.Sprintf("%s push %s", gitBaseCommand, gitRemoteName)
 		pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s",pushBaseCmd, pushBaseCmd, newTag)
 		_, err, errMsg := shellout(pushCommitTagCmd)
