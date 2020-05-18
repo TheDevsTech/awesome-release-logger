@@ -448,15 +448,15 @@ func commitLog() {
 func pushLatestCommitAndTagToRemote() {
 	//if has remote then push it
 	if len(gitRemoteUrl) > 0 {
-		fmt.Println("Pushing log and tag to remote...")
+		fmt.Println("Pushing HEAD and tag to remote...")
 		pushBaseCmd := fmt.Sprintf("%s push %s", gitBaseCommand, gitRemoteName)
 		pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s",pushBaseCmd, pushBaseCmd, newTag)
 		_, err, errMsg := shellout(pushCommitTagCmd)
 		if err != nil {
-			fmt.Printf("Push to remove failed!\n error: %s", errMsg)
+			fmt.Printf("Push to remote failed!\n error: %s", errMsg)
 			os.Exit(1)
 		}
 
-		fmt.Printf("Release log and tag: %s has been pushed to remote\n", newTag)
+		fmt.Printf("HEAD & tag: %s has been pushed to remote\n", newTag)
 	}
 }

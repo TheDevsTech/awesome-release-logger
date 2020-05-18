@@ -1,11 +1,3 @@
-# Version v1.2.2 (2020-05-18)
-## Fix
-* outside repo release log commit bug ([9c3cf8b](https://github.com/TheDevsTech/awesome-release-logger/commit/9c3cf8bd8b26f9308725f2178ed68122c7833f80))
-
-## Diff
-* https://github.com/TheDevsTech/awesome-release-logger/compare/v1.2.1...v1.2.2
-
-
 # Version v1.2.1 (2020-05-18)
 ## Feature
 * add app version info option ([3ea40e3](https://github.com/TheDevsTech/awesome-release-logger/commit/3ea40e36ac2eb061fad9b3c5ccbdc4625dbb3eaa))
