@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-const ShellToUse = "bash"
-const AppVersion = "v1.2.2"
+const shellToUse = "bash"
+const appVersion = "v1.2.2"
 
 var (
 	gitBaseCommand                                       = "git"
@@ -22,7 +22,7 @@ var (
 	logFileFolder                                        = "release-logs"
 	releaseFileName                                      = "release-log.md"
 	isCommitLog                                          = false
-	gitRemoteUrl, gitRemoteName, projectPath, outputPath string
+	gitRemoteURL, gitRemoteName, projectPath, outputPath string
 	haveBreakChange                                      = false
 	haveLog                                              = false
 	writeNewFile                                         = new(bool)
@@ -100,7 +100,7 @@ func parseCliOptions() {
 
 func printVersionInfo() {
 	fmt.Println("-: Awesome Release Logger(ARL) :-")
-	fmt.Printf("Version: %s\n", AppVersion)
+	fmt.Printf("Version: %s\n", appVersion)
 	fmt.Println("Copyright(c) 2020 TheDevsTech - GPL-3.0")
 	os.Exit(0)
 }
@@ -115,7 +115,7 @@ func directoryOrFileExists(path string) bool {
 func shellout(command string) (string, error, string) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	cmd := exec.Command(ShellToUse, "-c", command)
+	cmd := exec.Command(shellToUse, "-c", command)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
@@ -137,39 +137,39 @@ func findGitRemote() {
 		}
 
 		if len(remoteList) > 1 {
-			gitRemoteUrl, gitRemoteName = getRemoteFromUserInput(remoteList)
+			gitRemoteURL, gitRemoteName = getRemoteFromUserInput(remoteList)
 
 		} else {
 			for name, url := range remoteList {
-				gitRemoteUrl = url
+				gitRemoteURL = url
 				gitRemoteName = name
 				break
 			}
 		}
 
 		//replace ssh clone url to https
-		if len(gitRemoteUrl) > 0 {
-			if strings.HasPrefix(gitRemoteUrl, "git@") {
-				gitRemoteUrl = replaceMessage(gitRemoteUrl, ":", "/")
-				gitRemoteUrl = replaceMessage(gitRemoteUrl, "git@", "https://")
+		if len(gitRemoteURL) > 0 {
+			if strings.HasPrefix(gitRemoteURL, "git@") {
+				gitRemoteURL = replaceMessage(gitRemoteURL, ":", "/")
+				gitRemoteURL = replaceMessage(gitRemoteURL, "git@", "https://")
 			}
 		}
 	}
 }
 
 func getRemoteFromUserInput(remoteList map[string]string) (string, string) {
-	remoteUrl := ""
+	remoteURL := ""
 	remoteName := ""
 	for {
 		choosenName := getUserChoice(remoteList)
 		url, exists := remoteList[choosenName]
 		if exists {
-			remoteUrl = url
+			remoteURL = url
 			remoteName = choosenName
 			break
 		}
 	}
-	return remoteUrl, remoteName
+	return remoteURL, remoteName
 }
 
 func getUserChoice(remoteList map[string]string) string {
@@ -252,13 +252,13 @@ func replaceMessage(message string, search string, replace string) string {
 
 func formatMessage(message string, sha string, shortSha string) string {
 	messageSlice := []string{}
-	if len(gitRemoteUrl) > 0 {
+	if len(gitRemoteURL) > 0 {
 		messageSlice = []string{message,
 			" ",
 			"([",
 			shortSha,
 			"](",
-			gitRemoteUrl,
+			gitRemoteURL,
 			"/commit/",
 			sha,
 			"))",
@@ -417,7 +417,7 @@ func writeReleaseLog() {
 	//now write diff between two tags
 	if len(latestTag) > 0 {
 		writeLine(nf, "## Diff")
-		diffText := fmt.Sprintf("* %s/compare/%s...%s", gitRemoteUrl, latestTag, newTag)
+		diffText := fmt.Sprintf("* %s/compare/%s...%s", gitRemoteURL, latestTag, newTag)
 		writeLine(nf, diffText)
 	}
 
@@ -462,7 +462,7 @@ func commitLog() {
 
 func pushHeadAndTagToRemote() {
 	//if has remote then push it
-	if len(gitRemoteUrl) > 0 {
+	if len(gitRemoteURL) > 0 {
 		fmt.Println("Pushing HEAD & tag to remote...")
 		pushBaseCmd := fmt.Sprintf("%s push %s", gitBaseCommand, gitRemoteName)
 		pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s", pushBaseCmd, pushBaseCmd, newTag)
