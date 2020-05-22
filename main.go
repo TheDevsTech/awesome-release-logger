@@ -12,7 +12,7 @@ import (
 )
 
 const shellToUse = "bash"
-const appVersion = "v1.2.2"
+const appVersion = "v1.2.3"
 
 var (
 	gitBaseCommand                                       = "git"
@@ -323,13 +323,13 @@ func writeLine(f *os.File, line string) {
 func getReleaseFilePath() string {
 	//path that provided via -o args
 	filePath := fmt.Sprintf("%s%s", outputPath, releaseFileName)
-	
+
 	//if current directory
 	if outputPath == "." {
 		outputPath = fmt.Sprintf("./%s", logFileFolder)
 
-		//if run from another directory then project path need to add
-		if len(projectPath) > 0 {
+		//if repo directory supplied then project path need to add
+		if projectPath != "." {
 			outputPath = fmt.Sprintf("%s%s", projectPath, logFileFolder)
 		}
 
@@ -353,7 +353,7 @@ func writeReleaseLog() {
 	}
 
 	releaseFilePath := getReleaseFilePath()
-	
+
 	//get previous contents because we need to prepend the latest log
 	oldContents := []string{}
 	if directoryOrFileExists(releaseFilePath) && !*writeNewFile {
