@@ -81,7 +81,7 @@ func parseCliOptions() {
 			fmt.Println("Project path not exists!")
 			os.Exit(1)
 		}
-		gitBaseCommand = fmt.Sprintf("%s %s%s%s", gitBaseCommand, "--git-dir=", projectPath, ".git")
+		gitBaseCommand = fmt.Sprintf("%s --git-dir=%s.git --work-tree=%s/", gitBaseCommand, projectPath, projectPath)
 	}
 
 	// output file location
@@ -401,9 +401,11 @@ func writeReleaseLog()  {
 	}
 
 	//now write diff between two tags
-	writeLine(nf, "## Diff")
-	diffText := fmt.Sprintf("* %s/compare/%s...%s", gitRemoteUrl, latestTag, newTag)
-	writeLine(nf, diffText)
+	if len(latestTag) > 0 {
+		writeLine(nf, "## Diff")
+		diffText := fmt.Sprintf("* %s/compare/%s...%s", gitRemoteUrl, latestTag, newTag)
+		writeLine(nf, diffText)
+	}
 
 
 	//now write old logs
