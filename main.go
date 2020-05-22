@@ -82,7 +82,7 @@ func parseCliOptions() {
 			fmt.Println("Project path not exists!")
 			os.Exit(1)
 		}
-		gitBaseCommand = fmt.Sprintf("%s --git-dir=%s.git --work-tree=%s/", gitBaseCommand, projectPath, projectPath)
+		gitBaseCommand = fmt.Sprintf("%s --git-dir=%s.git --work-tree=%s", gitBaseCommand, projectPath, projectPath)
 	}
 
 	// output file location
@@ -330,9 +330,9 @@ func getReleaseFilePath() string {
 
 		//if run from another directory then project path need to add
 		if len(projectPath) > 0 {
-			outputPath = fmt.Sprintf("%s/%s", projectPath, logFileFolder)
+			outputPath = fmt.Sprintf("%s%s", projectPath, logFileFolder)
 		}
-		
+
 		if !directoryOrFileExists(outputPath) {
 			os.Mkdir(outputPath, os.ModePerm)
 		}
