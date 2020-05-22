@@ -1,36 +1,37 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
-	"os"
 	"time"
-	"flag"
-	"bufio"
 )
 
 const ShellToUse = "bash"
 const AppVersion = "v1.2.2"
+
 var (
-	gitBaseCommand  = "git"
-	latestTag = ""
-	newTag = ""
-	tagMessage = ""
-	logFileFolder = "release-logs"
-	releaseFileName = "release-log.md"
-	isCommitLog = false
+	gitBaseCommand                                       = "git"
+	latestTag                                            = ""
+	newTag                                               = ""
+	tagMessage                                           = ""
+	logFileFolder                                        = "release-logs"
+	releaseFileName                                      = "release-log.md"
+	isCommitLog                                          = false
 	gitRemoteUrl, gitRemoteName, projectPath, outputPath string
-	haveBreakChange = false
-	haveLog = false
-	writeNewFile = new(bool)
-	logFromBeginning = new(bool)
-	showVersionNumber = new(bool)
+	haveBreakChange                                      = false
+	haveLog                                              = false
+	writeNewFile                                         = new(bool)
+	logFromBeginning                                     = new(bool)
+	showVersionNumber                                    = new(bool)
 	//conventional commit types
 	features []string
-	fixes []string
-	chores []string
+	fixes    []string
+	chores   []string
 )
 
 func main() {
@@ -42,7 +43,7 @@ func main() {
 	findGitRemote()
 	findLatestTag()
 	collectGitLogs()
-	if haveLog {		
+	if haveLog {
 		//Get new tag from user
 		for {
 			// get tag form user
@@ -58,7 +59,7 @@ func main() {
 		pushHeadAndTagToRemote()
 
 	} else {
-		fmt.Println("There are no changes made between "+latestTag +" and HEAD")
+		fmt.Println("There are no changes made between " + latestTag + " and HEAD")
 	}
 }
 
@@ -74,7 +75,7 @@ func parseCliOptions() {
 	// .git directory discovery
 	if projectPath != "." {
 		if !strings.HasSuffix(projectPath, "/") {
-			projectPath = fmt.Sprintf("%s%s",projectPath, "/")
+			projectPath = fmt.Sprintf("%s%s", projectPath, "/")
 		}
 
 		if !directoryOrFileExists(projectPath) {
@@ -126,9 +127,9 @@ func findGitRemote() {
 	remoteCommand := gitBaseCommand + " remote -v"
 	remote, err, _ := shellout(remoteCommand)
 	if err == nil && len(remote) > 0 {
-		remoteArray := strings.Split(remote, "\n");
+		remoteArray := strings.Split(remote, "\n")
 		remoteList := make(map[string]string)
-		for _, line := range(remoteArray) {
+		for _, line := range remoteArray {
 			if len(line) > 0 {
 				remotePart := strings.Fields(line)
 				remoteList[remotePart[0]] = replaceMessage(remotePart[1], ".git", "")
@@ -182,11 +183,11 @@ func getUserChoice(remoteList map[string]string) string {
 	return name
 }
 
-func findLatestTag()  {
+func findLatestTag() {
 	latestTagCommand := gitBaseCommand + " rev-list --tags --max-count=1"
 	tagHas, err, _ := shellout(latestTagCommand)
 	if err == nil && len(tagHas) > 0 {
-		latestTagCommand = fmt.Sprintf("%s describe --tags %s" ,gitBaseCommand, tagHas)
+		latestTagCommand = fmt.Sprintf("%s describe --tags %s", gitBaseCommand, tagHas)
 		latestTagName, err, _ := shellout(latestTagCommand)
 		if err == nil && len(latestTagName) > 0 {
 			latestTag = strings.Replace(latestTagName, "\n", "", -1)
@@ -219,7 +220,7 @@ func collectGitLogs() {
 
 }
 
-func makeNewTag()  {
+func makeNewTag() {
 	// now make the tag
 	tagCommand := fmt.Sprintf("%s tag -a -m '%s' %s", gitBaseCommand, tagMessage, newTag)
 	_, err, errMsg := shellout(tagCommand)
@@ -230,7 +231,7 @@ func makeNewTag()  {
 
 }
 
-func getTagFromUserInput() (string, string)  {
+func getTagFromUserInput() (string, string) {
 	if len(latestTag) > 0 {
 		fmt.Printf("Previous tag is %s\n", latestTag)
 		if haveBreakChange {
@@ -245,11 +246,11 @@ func getTagFromUserInput() (string, string)  {
 	return nTag, message
 }
 
-func replaceMessage(message string, search string, replace string) string  {
+func replaceMessage(message string, search string, replace string) string {
 	return strings.Replace(message, search, replace, len(search))
 }
 
-func formatMessage(message string, sha string, shortSha string) string  {
+func formatMessage(message string, sha string, shortSha string) string {
 	messageSlice := []string{}
 	if len(gitRemoteUrl) > 0 {
 		messageSlice = []string{message,
@@ -274,7 +275,7 @@ func formatMessage(message string, sha string, shortSha string) string  {
 	return strings.Join(messageSlice, "")
 }
 
-func parseCommits(commits string)  {
+func parseCommits(commits string) {
 	commitsArray := strings.Split(commits, "----DELIMITER----\n")
 	for _, commit := range commitsArray {
 		commitPart := strings.Split(commit, "\n")
@@ -289,21 +290,21 @@ func parseCommits(commits string)  {
 			}
 
 			if strings.HasPrefix(message, "chore:") {
-				message = replaceMessage(message, "chore: ","")
+				message = replaceMessage(message, "chore: ", "")
 				chores = append(chores, formatMessage(message, sha, shortSha))
 			} else if strings.HasPrefix(message, "fix:") {
-				message = replaceMessage(message, "fix: ","")
+				message = replaceMessage(message, "fix: ", "")
 				fixes = append(fixes, formatMessage(message, sha, shortSha))
 			} else if strings.HasPrefix(message, "breaking change:") {
-				message = replaceMessage(message, "breaking change: ","")
+				message = replaceMessage(message, "breaking change: ", "")
 				features = append(features, formatMessage(message, sha, shortSha))
 				haveBreakChange = true
 			} else {
 				if strings.HasPrefix(message, "feature:") {
-					message = replaceMessage(message, "feature: ","")
+					message = replaceMessage(message, "feature: ", "")
 				}
 				if strings.HasPrefix(message, "feat:") {
-					message = replaceMessage(message, "feat: ","")
+					message = replaceMessage(message, "feat: ", "")
 				}
 				features = append(features, formatMessage(message, sha, shortSha))
 
@@ -312,36 +313,50 @@ func parseCommits(commits string)  {
 	}
 }
 
-func writeLine(f *os.File, line string)  {
+func writeLine(f *os.File, line string) {
 	l := fmt.Sprintf("%s%s", line, "\n")
 	if _, err := f.WriteString(l); err != nil {
 		fmt.Println(err)
 	}
 }
 
-func writeReleaseLog()  {
+func getReleaseFilePath() string {
+	//path that provided via -o args
+	filePath := fmt.Sprintf("%s%s", outputPath, releaseFileName)
+	
+	//if current directory
+	if outputPath == "." {
+		outputPath = fmt.Sprintf("./%s", logFileFolder)
+
+		//if run from another directory then project path need to add
+		if len(projectPath) > 0 {
+			outputPath = fmt.Sprintf("%s/%s", projectPath, logFileFolder)
+		}
+		
+		if !directoryOrFileExists(outputPath) {
+			os.Mkdir(outputPath, os.ModePerm)
+		}
+		filePath = fmt.Sprintf("%s/%s", outputPath, releaseFileName)
+
+		//If writing log inside of the repo, then need to commit the log
+		isCommitLog = true
+	}
+
+	return filePath
+}
+
+func writeReleaseLog() {
 	today := time.Now()
 	todayFormated := today.Format("2006-01-02")
 	if *writeNewFile {
 		releaseFileName = fmt.Sprintf("release-log-%s.md", todayFormated)
 	}
-	releaseFilePath := releaseFileName
-	if outputPath != "." {
-		releaseFilePath = fmt.Sprintf("%s%s", outputPath, releaseFileName)
-	} else {
-		outputPath = fmt.Sprintf("./%s", logFileFolder)
-		if !directoryOrFileExists(outputPath){
-			os.Mkdir(outputPath, os.ModePerm)
-		}
-		releaseFilePath = fmt.Sprintf("%s/%s", outputPath, releaseFileName)
-		
-		//If writing log inside of the repo, then need to commit the log
-		isCommitLog = true
-	}
 
+	releaseFilePath := getReleaseFilePath()
+	
 	//get previous contents because we need to prepend the latest log
 	oldContents := []string{}
-	if directoryOrFileExists(releaseFilePath) && ! *writeNewFile {
+	if directoryOrFileExists(releaseFilePath) && !*writeNewFile {
 		f, err := os.OpenFile(releaseFilePath, os.O_RDONLY, 0600)
 		if err != nil {
 			fmt.Println(err)
@@ -355,7 +370,6 @@ func writeReleaseLog()  {
 		}
 		defer f.Close()
 	}
-
 
 	// open release log file
 	nf, err := os.OpenFile(releaseFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
@@ -376,7 +390,7 @@ func writeReleaseLog()  {
 	if len(features) > 0 {
 		writeLine(nf, "## Feature")
 		for _, message := range features {
-			writeLine(nf, "* " + message)
+			writeLine(nf, "* "+message)
 		}
 		//write a empty line
 		writeLine(nf, "")
@@ -385,7 +399,7 @@ func writeReleaseLog()  {
 	if len(fixes) > 0 {
 		writeLine(nf, "## Fix")
 		for _, message := range fixes {
-			writeLine(nf, "* " + message)
+			writeLine(nf, "* "+message)
 		}
 		//write a empty line
 		writeLine(nf, "")
@@ -394,7 +408,7 @@ func writeReleaseLog()  {
 	if len(chores) > 0 {
 		writeLine(nf, "## Chore")
 		for _, message := range chores {
-			writeLine(nf, "* " + message)
+			writeLine(nf, "* "+message)
 		}
 		//write a empty line
 		writeLine(nf, "")
@@ -407,9 +421,8 @@ func writeReleaseLog()  {
 		writeLine(nf, diffText)
 	}
 
-
 	//now write old logs
-    if len(oldContents) > 0 {
+	if len(oldContents) > 0 {
 		//write empty lines
 		writeLine(nf, "")
 		writeLine(nf, "")
@@ -418,7 +431,7 @@ func writeReleaseLog()  {
 		}
 	}
 
-	endMessage := "Log File: "+ releaseFilePath
+	endMessage := "Log File: " + releaseFilePath
 	messageLen := len(endMessage)
 	fmt.Println(strings.Repeat("-", messageLen))
 	fmt.Println(endMessage)
@@ -452,7 +465,7 @@ func pushHeadAndTagToRemote() {
 	if len(gitRemoteUrl) > 0 {
 		fmt.Println("Pushing HEAD & tag to remote...")
 		pushBaseCmd := fmt.Sprintf("%s push %s", gitBaseCommand, gitRemoteName)
-		pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s",pushBaseCmd, pushBaseCmd, newTag)
+		pushCommitTagCmd := fmt.Sprintf("%s HEAD && %s %s", pushBaseCmd, pushBaseCmd, newTag)
 		_, err, errMsg := shellout(pushCommitTagCmd)
 		if err != nil {
 			fmt.Printf("Push to remote failed!\n error: %s", errMsg)
